@@ -1,8 +1,6 @@
 """
 The template of the main script of the machine learning process
 """
-import pickle
-from os import path
 
 import games.arkanoid.communication as comm
 from games.arkanoid.communication import ( \
@@ -24,9 +22,6 @@ def ml_loop():
     # === Here is the execution order of the loop === #
     # 1. Put the initialization code here.
     ball_served = False
-    filename = 'your_file_name.pickle'
-    filename = path.join(path.dirname(__file__), filename)
-    log = pickle.load(open(filename, 'rb'))
     ball_pos=[0,0]
     line_x=0 #球的落點
     line_y=0
@@ -87,9 +82,11 @@ def ml_loop():
                     
             ball_pos[0]=scene_info.ball[0]
             ball_pos[1]=scene_info.ball[1]
+       
+                        
         # 3.4. Send the instruction for this frame to the game process
         if not ball_served:
-            comm.send_instruction(scene_info.frame, PlatformAction.SERVE_TO_RIGHT)
+            comm.send_instruction(scene_info.frame, PlatformAction.SERVE_TO_LEFT)
             ball_served = True
         else:
             if abs(scene_info.platform[0]+20-line_x)<10: #差不多就不要動了
@@ -98,6 +95,10 @@ def ml_loop():
                 comm.send_instruction(scene_info.frame, PlatformAction.MOVE_RIGHT)
             elif scene_info.platform[0]+20>line_x:
                 comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
-            history_log = log[scene_info.frame]
-            action = history_log.command
-            comm.send_instruction(scene_info.frame, action)
+            
+            #comm.send_instruction(scene_info.frame, PlatformAction.NONE)
+            
+
+
+            
+        
