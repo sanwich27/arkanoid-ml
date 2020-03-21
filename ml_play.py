@@ -22,7 +22,10 @@ def ml_loop():
     # === Here is the execution order of the loop === #
     # 1. Put the initialization code here.
     ball_served = False
-
+    ball_pos=[0,0]
+    line_x=0 #球的落點
+    line_y=0
+    left=0
     # 2. Inform the game process that ml process is ready before start the loop.
     comm.ml_ready()
 
@@ -43,12 +46,56 @@ def ml_loop():
             continue
 
         # 3.3. Put the code here to handle the scene information
-
+        line_x=scene_info.ball[0]
+        line_y=scene_info.ball[1]
+        if scene_info.frame==1:
+            ball_pos[0]=scene_info.ball[0]
+            ball_pos[1]=scene_info.ball[1]
+            line_x=95
+            line_y=395
+        else:
+            if scene_info.ball[1]-ball_pos[1]<0:  #moving up
+                line_x=95 #移到中間 
+                line_y=395
+            else: #moving down
+                if scene_info.ball[0]-ball_pos[0]>0:#moving right
+                    left=0
+                else:#moving left
+                    left=1
+                while line_y<395:
+                    if left==0: #還沒撞到右邊
+                        if line_x<195:
+                            line_x+=7
+                            line_y+=7
+                        if line_x>=195:
+                            left=1
+                            line_x=195 #向左彈回去
+                    elif left==1:
+                        if line_x>0:
+                            line_x-=7
+                            line_y+=7
+                        if line_x<=0:
+                            left=0
+                            line_x=0 #向右彈
+                    
+            ball_pos[0]=scene_info.ball[0]
+            ball_pos[1]=scene_info.ball[1]
+       
+                        
         # 3.4. Send the instruction for this frame to the game process
         if not ball_served:
             comm.send_instruction(scene_info.frame, PlatformAction.SERVE_TO_LEFT)
             ball_served = True
         else:
-            comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
-            print(scene_info.ball)
-           # print(scene_info.platform)
+            if scene_info.platform[0]+20<line_x:
+                comm.send_instruction(scene_info.frame, PlatformAction.MOVE_RIGHT)
+            elif scene_info.platform[0]+20>line_x:
+                comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
+            else:
+                comm.send_instruction(scene_info.frame, PlatformAction.NONE)
+            #comm.send_instruction(scene_info.frame, PlatformAction.NONE)
+            
+
+
+            
+        
